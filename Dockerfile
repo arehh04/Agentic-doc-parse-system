@@ -26,7 +26,7 @@ ENV PORT=8501
 EXPOSE $PORT
 
 # Healthcheck to help Render know when the app is live
-HEALTHCHECK CMD curl --fail http://localhost:$PORT/_stcore/health
+HEALTHCHECK CMD curl --fail http://localhost:$PORT/ || exit 1
 
-# Command to run the Streamlit app
-CMD streamlit run dashboard.py --server.port=$PORT --server.address=0.0.0.0
+# Command to run the FastAPI app
+CMD uvicorn api.main:app --host 0.0.0.0 --port $PORT

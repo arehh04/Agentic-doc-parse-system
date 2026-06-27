@@ -9,5 +9,7 @@ docling>=1.0.0
 supabase>=2.3.0
 pandas
 pytest
-streamlit>=1.30.0
+fastapi
+uvicorn
+python-multipart
 plotly>=5.18.0
