@@ -21,8 +21,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Streamlit runs on 8501 by default, but Render dynamically assigns a PORT env var
-# We'll use the Render PORT if available, otherwise default to 8501
-ENV PORT=8501
+# HuggingFace Spaces requires port 7860 by default.
+# We'll use the platform PORT if available, otherwise default to 7860
+ENV PORT=7860
 EXPOSE $PORT
 
 # Healthcheck to help Render know when the app is live
