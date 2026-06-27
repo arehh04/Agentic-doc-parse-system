@@ -86,6 +86,16 @@ Answer:"""
 
         self.chain = self.answer_prompt | self.llm | StrOutputParser()
 
+        self.router_prompt = PromptTemplate.from_template(
+            "Classify the following user message as either 'DATA' (if it asks for analytics, stats, or querying the receipts dataset) or 'CHAT' (if it is a general greeting, thanks, or conversational message).\nUser: {question}\nOutput ONLY 'DATA' or 'CHAT'."
+        )
+        self.router_chain = self.router_prompt | self.llm | StrOutputParser()
+        
+        self.chat_prompt = PromptTemplate.from_template(
+            "You are a friendly data analyst assistant named Elfaria. You help users analyze their receipt data. Respond concisely and pleasantly to the user's conversational message.\nHistory: {history}\nUser: {question}\nAnswer:"
+        )
+        self.chat_chain = self.chat_prompt | self.llm | StrOutputParser()
+
     def _fetch_data(self) -> list:
         """Fetch all receipts from Supabase via REST API with caching."""
         now = time.time()
@@ -112,13 +122,40 @@ Answer:"""
 
     def answer_query(self, natural_language_query: str) -> dict:
         try:
+            history = self._build_history_string()
+            
+            # Semantic Routing
+            route_start = time.time()
+            route = self.router_chain.invoke({"question": natural_language_query}).strip().upper()
+            
+            if "CHAT" in route:
+                llm_start = time.time()
+                answer = self.chat_chain.invoke({"question": natural_language_query, "history": history})
+                llm_time = time.time() - llm_start
+                
+                self.conversation_history.append({"role": "user", "content": natural_language_query})
+                self.conversation_history.append({"role": "assistant", "content": answer})
+                
+                return {
+                    "question": natural_language_query,
+                    "sql_query": "Semantic Router: Bypassed DB fetch for general conversation.",
+                    "sql_result": "0 records",
+                    "answer": answer,
+                    "chart_data": None,
+                    "timing": {
+                        "fetch_time": 0.0,
+                        "llm_time": round(llm_time, 3),
+                        "total_time": round(time.time() - route_start, 3)
+                    }
+                }
+
+            # Original Data Flow for Analytics
             fetch_start = time.time()
             data = self._fetch_data()
             fetch_time = time.time() - fetch_start
             total_count = len(data)
 
             data_sample = json.dumps(data[:200], indent=2, default=str)
-            history = self._build_history_string()
 
             llm_start = time.time()
             answer = self.chain.invoke({
