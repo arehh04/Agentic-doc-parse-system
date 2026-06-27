@@ -12,8 +12,8 @@ class DocumentParsingAgent:
     
     def __init__(self):
         # Configure EasyOCR to avoid the torch.PP-OCRv6.det.small error in HuggingFace Spaces
-        ocr_options = EasyOcrOptions(do_ocr=True)
-        pipeline_options = PdfPipelineOptions(ocr_options=ocr_options)
+        ocr_options = EasyOcrOptions(force_full_page_ocr=True, use_gpu=False)
+        pipeline_options = PdfPipelineOptions(ocr_options=ocr_options, do_ocr=True)
         
         # Initialize Docling converter with EasyOCR
         self.converter = DocumentConverter(
