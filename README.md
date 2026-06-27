@@ -1,6 +1,6 @@
 <div align="center">
 
-# SROIE Receipt Extraction Pipeline
+# 🏎️ Carrera AI
 
 ### Multi-Agent Architecture for Intelligent Document Processing
 

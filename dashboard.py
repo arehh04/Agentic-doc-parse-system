@@ -12,8 +12,8 @@ from datetime import datetime
 # Page configuration
 # ---------------------------------------------------------------------------
 st.set_page_config(
-    page_title="Agentic Document Intelligence",
-    page_icon="🤖",
+    page_title="Carrera AI",
+    page_icon="🏎️",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -151,7 +151,7 @@ if st.sidebar.button("🔄 Refresh Data"):
     st.cache_data.clear()
     st.rerun()
 
-st.title("🤖 Agentic Document Intelligence")
+st.title("🏎️ Carrera AI")
 
 # ---------------------------------------------------------------------------
 # Chart rendering helper for the Chat tab
@@ -340,7 +340,7 @@ with tab_db:
 # Tab 5 – Chat with Database (RAG) — Multi-turn + Charts
 # ---------------------------------------------------------------------------
 with tab_chat:
-    st.header("🤖 Agentic Document Intelligence")
+    st.header("🏎️ Carrera AI")
     
     # Persistent agent with conversation memory
     if "analytics_agent" not in st.session_state:
