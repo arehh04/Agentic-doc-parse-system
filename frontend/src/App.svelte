@@ -5,6 +5,7 @@
   let prompt = "";
   let isSending = false;
   let chatboxElement;
+  let fileInput;
   
   // Theme state
   let darkTheme = false;
@@ -118,6 +119,59 @@
     isSending = false;
     scrollToBottom();
   }
+
+  async function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    messages = [...messages, { role: 'user', content: `Offered a scroll: <strong>${file.name}</strong>` }];
+    isSending = true;
+    scrollToBottom();
+    
+    traceItems = ["🧠 Orchestrator awakened"];
+    agentStatus = agentStatus.map(a => ({...a, active: false}));
+    agentStatus[0].active = true;
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const API_URL = import.meta.env.VITE_API_URL || "https://arehhham-carrera-ai-backend.hf.space";
+      
+      traceItems = ["🧠 Orchestrator awakened", "📸 Extracting Runes", "⚙️ Validating Schema"];
+      
+      const res = await fetch(`${API_URL}/api/upload`, {
+        method: "POST",
+        body: formData
+      });
+      const data = await res.json();
+      
+      traceItems = ["🧠 Orchestrator awakened", "📸 Extracting Runes", "⚙️ Validating Schema", "✅ Scroll archived in Supabase"];
+      agentStatus = agentStatus.map(a => ({...a, active: true}));
+      
+      if (res.ok) {
+        let display_content = `<strong>Scroll transcribed successfully.</strong><br><br>`;
+        if (data.data) {
+           display_content += `<strong>Company:</strong> ${data.data.company_name || 'N/A'}<br>`;
+           display_content += `<strong>Date:</strong> ${data.data.date || 'N/A'}<br>`;
+           display_content += `<strong>Total Amount:</strong> RM ${data.data.total_amount || 'N/A'}<br>`;
+        }
+        messages = [...messages, { role: 'ai', content: display_content, sql: "" }];
+        showToastMessage('✦ The archives have grown');
+      } else {
+        messages = [...messages, { role: 'ai', content: `Error parsing scroll: ${data.detail || 'Unknown error'}`, sql: "" }];
+        showToastMessage('⚠️ The weave is disturbed');
+      }
+    } catch (e) {
+      messages = [...messages, { role: 'ai', content: "Error connecting to backend.", sql: "" }];
+      showToastMessage('⚠️ The weave is disturbed');
+    }
+    
+    // Reset file input
+    if (fileInput) fileInput.value = "";
+    isSending = false;
+    scrollToBottom();
+  }
 </script>
 
 <svelte:head>
@@ -188,6 +242,8 @@
       </div>
 
       <form class="chat-input-row" on:submit|preventDefault={sendMessage}>
+        <input type="file" bind:this={fileInput} on:change={handleFileUpload} accept=".jpg,.jpeg,.png" style="display:none;" />
+        <button type="button" class="upload-btn" on:click={() => fileInput.click()} disabled={isSending} title="Offer a scroll">📜</button>
         <input type="text" bind:value={prompt} placeholder="Ask of the weave…" disabled={isSending} />
         <button type="submit" disabled={isSending}>✦ Ask</button>
       </form>
@@ -639,7 +695,7 @@
     margin-top: 16px;
   }
 
-  .chat-input-row input {
+  .chat-input-row input[type="text"] {
     flex: 1;
     padding: 14px 20px;
     border: 1px solid var(--elf-border);
@@ -648,6 +704,24 @@
     background: var(--elf-white);
     color: var(--elf-ink);
     outline: none;
+  }
+
+  .chat-input-row .upload-btn {
+    padding: 14px;
+    border: 1px solid var(--elf-border);
+    border-radius: 50%;
+    background: var(--elf-white);
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    color: var(--elf-ink);
+    cursor: pointer;
+  }
+  .chat-input-row .upload-btn:hover {
+    background: var(--elf-cream);
   }
 
   .chat-input-row button {
