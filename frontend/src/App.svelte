@@ -1,6 +1,7 @@
 <script>
   import { onMount, tick } from 'svelte';
   import { marked } from 'marked';
+  import ChartComponent from './ChartComponent.svelte';
 
   let prompt = "";
   let isSending = false;
@@ -106,11 +107,16 @@
       if (display_content.includes("```sql")) {
          display_content = display_content.replace(/```sql[\s\S]*?```/g, '');
       }
+      // Strip chart_json fences from text if present
+      if (display_content.includes("```chart_json")) {
+         display_content = display_content.replace(/```chart_json[\s\S]*?```/g, '');
+      }
       display_content = marked.parse(display_content);
       
       let sql = data.sql_query || "-- No SQL Generated";
+      let chart_data = data.chart_data || null;
       
-      messages = [...messages, { role: 'ai', content: display_content, sql }];
+      messages = [...messages, { role: 'ai', content: display_content, sql, chart_data }];
       showToastMessage('✦ The Oracle has spoken');
     } catch (e) {
       messages = [...messages, { role: 'ai', content: "Error connecting to backend.", sql: "" }];
@@ -227,6 +233,9 @@
             <span class="msg-label">{msg.role === 'user' ? '◈ You' : '◈ Oracle · Analytics'}</span>
             <div class="msg-content">
               {@html msg.content}
+              {#if msg.chart_data}
+                <ChartComponent chartData={msg.chart_data} />
+              {/if}
               {#if msg.sql && msg.sql !== "-- No SQL Generated"}
                 <span class="sql-block">{msg.sql}</span>
               {/if}
