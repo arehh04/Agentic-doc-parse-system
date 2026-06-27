@@ -43,9 +43,8 @@
     agentStatus[0].active = true;
 
     try {
-      // Pointing to Render backend once deployed, but local for now
-      // In production, you would use a relative path or env variable for the API URL
-      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8501";
+      // Pointing to the live HuggingFace backend!
+      const API_URL = import.meta.env.VITE_API_URL || "https://arehhham-carrera-ai-backend.hf.space";
       const res = await fetch(`${API_URL}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
