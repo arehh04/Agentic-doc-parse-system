@@ -62,9 +62,10 @@ Conversation history:
 User Question: {question}
 
 IMPORTANT INSTRUCTIONS:
-1. Provide a clear, accurate, and friendly answer based on the data above.
+65. Provide a clear, accurate, and friendly answer based on the data above.
 2. If the question requires calculation (sum, average, count, etc.), compute it from the data.
-3. If the user asks to "plot", "chart", "graph", or "visualize" something, you MUST respond with a JSON block wrapped in ```chart_json``` fences. The JSON must have:
+3. You MUST provide the equivalent PostgreSQL query that would have retrieved this exact insight. Wrap it in a ```sql ... ``` block at the end of your answer. This is for transparency purposes.
+4. If the user asks to "plot", "chart", "graph", or "visualize" something, you MUST respond with a JSON block wrapped in ```chart_json``` fences. The JSON must have:
    - "chart_type": one of "bar", "line", "pie", "scatter"
    - "title": chart title
    - "x_label": x-axis label
@@ -78,7 +79,7 @@ IMPORTANT INSTRUCTIONS:
    
    After the chart JSON, also include a brief text explanation.
 
-4. Reference the conversation history if the user asks follow-up questions.
+5. Reference the conversation history if the user asks follow-up questions.
 
 Answer:"""
         )
@@ -132,6 +133,14 @@ Answer:"""
             self.conversation_history.append({"role": "user", "content": natural_language_query})
             self.conversation_history.append({"role": "assistant", "content": answer})
 
+            # Parse SQL if present
+            sql_gen = f"REST API: fetched {total_count} rows ({fetch_time:.2f}s)"
+            if "```sql" in answer:
+                try:
+                    sql_gen = answer.split("```sql")[1].split("```")[0].strip()
+                except IndexError:
+                    pass
+                    
             # Parse chart data if present
             chart_data = None
             if "```chart_json" in answer:
@@ -143,7 +152,7 @@ Answer:"""
 
             return {
                 "question": natural_language_query,
-                "sql_query": f"REST API: fetched {total_count} rows ({fetch_time:.2f}s)",
+                "sql_query": sql_gen,
                 "sql_result": f"{total_count} records",
                 "answer": answer,
                 "chart_data": chart_data,
