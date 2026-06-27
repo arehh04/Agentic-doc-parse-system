@@ -1,6 +1,36 @@
 <script>
+  import { onMount, tick } from 'svelte';
+
   let prompt = "";
   let isSending = false;
+  let chatboxElement;
+  
+  // Theme state
+  let darkTheme = false;
+  
+  // Toast state
+  let showToast = false;
+  let toastMsg = "Oracle speaks";
+  let toastTimer;
+
+  function toggleTheme() {
+    darkTheme = !darkTheme;
+    showToastMessage(darkTheme ? '🌙 Night falls upon Elfaria' : '☀️ The dawn returns');
+    if (darkTheme) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+  }
+
+  function showToastMessage(msg) {
+    toastMsg = msg;
+    showToast = true;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      showToast = false;
+    }, 2800);
+  }
   
   let messages = [
     {
@@ -9,26 +39,33 @@
     },
     {
       role: 'ai',
-      content: '<b>Analytics Agent:</b><br><br>1. 99 SPEED MART — RM12,580.20<br>2. KFC — RM10,122.40<br>3. MYDIN — RM9,875.30<br>4. WATSONS — RM8,621.90<br>5. AEON — RM7,994.10',
-      sql: 'SELECT company_name,\nSUM(total_amount) AS total_spending\nFROM receipts\nGROUP BY company_name\nORDER BY total_spending DESC\nLIMIT 5;'
+      content: '<strong>Top 5 merchants by total spend:</strong><br><br>1. 99 SPEED MART — RM12,580.20<br>2. KFC — RM10,122.40<br>3. MYDIN — RM9,875.30<br>4. WATSONS — RM8,621.90<br>5. AEON — RM7,994.10',
+      sql: 'SELECT company_name, SUM(total_amount) AS total_spending\nFROM receipts\nGROUP BY company_name\nORDER BY total_spending DESC\nLIMIT 5;'
     }
   ];
 
   let traceItems = [
-    "🧠 Agent Manager received request",
+    "🧠 Agent Manager received the call",
     "📊 Analytics Agent selected",
-    "⚙️ SQL generated",
-    "🗄️ Query executed",
-    "📈 Insights generated",
-    "✅ Response delivered"
+    "⚙️ SQL woven",
+    "🗄️ Query spoken to the archives",
+    "📈 Insights crystallized",
+    "✅ Vision delivered"
   ];
 
   let agentStatus = [
-    { name: 'Agent Manager', active: true },
-    { name: 'Analytics Agent', active: true },
-    { name: 'SQL Generator', active: true },
-    { name: 'Supabase Connector', active: true },
+    { name: '🧠 Agent Manager', active: true },
+    { name: '📊 Analytics Agent', active: true },
+    { name: '⚙️ SQL Weaver', active: true },
+    { name: '🗄️ Archive Keeper', active: true },
   ];
+
+  async function scrollToBottom() {
+    await tick();
+    if (chatboxElement) {
+      chatboxElement.scrollTop = chatboxElement.scrollHeight;
+    }
+  }
 
   async function sendMessage() {
     if (!prompt.trim()) return;
@@ -37,8 +74,9 @@
     let currentPrompt = prompt;
     prompt = "";
     isSending = true;
+    scrollToBottom();
     
-    traceItems = ["🧠 Agent Manager received request"];
+    traceItems = ["🧠 Agent Manager received the call"];
     agentStatus = agentStatus.map(a => ({...a, active: false}));
     agentStatus[0].active = true;
 
@@ -53,11 +91,11 @@
       const data = await res.json();
       
       traceItems = [
-        "🧠 Agent Manager received request",
+        "🧠 Agent Manager received the call",
         "📊 Analytics Agent selected", 
-        "⚙️ SQL generated",
-        "🗄️ Query executed",
-        "✅ Response delivered"
+        "⚙️ SQL woven",
+        "🗄️ Query spoken to the archives",
+        "✅ Vision delivered"
       ];
       agentStatus = agentStatus.map(a => ({...a, active: true}));
       
@@ -70,334 +108,741 @@
       let sql = data.sql_query || "-- No SQL Generated";
       
       messages = [...messages, { role: 'ai', content: display_content, sql }];
+      showToastMessage('✦ The Oracle has spoken');
     } catch (e) {
       messages = [...messages, { role: 'ai', content: "Error connecting to backend.", sql: "" }];
+      showToastMessage('⚠️ The weave is disturbed');
     }
     isSending = false;
+    scrollToBottom();
   }
 </script>
 
-<main>
-  <div class="header doodle">
-    <div class="title">🤖 Carrera AI</div>
-    <div class="subtitle">
-      Multi-Agent Platform • Orchestrator • Text-to-SQL • RAG • Analytics
-    </div>
+<svelte:head>
+  <link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;700&family=Quicksand:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+</svelte:head>
+
+<main class="app" class:dark={darkTheme}>
+  <!-- Background magic -->
+  <div class="elf-bg-overlay"></div>
+
+  <!-- Toast -->
+  <div class="toast" class:show={showToast}>
+    <span class="toast-icon">✦</span>
+    <span>{toastMsg}</span>
   </div>
 
-  <div class="metrics">
-    <div class="metric doodle">
-      <div>F1 SCORE</div>
-      <div class="metric-value">91.64%</div>
+  <!-- Header -->
+  <header class="header elf-card bento-header">
+    <div class="header-left">
+      <div class="title">
+        <span class="ornament">✦</span>
+        Elfaria <span class="accent">Albis</span>
+        <span class="ornament">✦</span>
+      </div>
+      <div class="subtitle">
+        <span>Agentic Oracle</span> · Multi-Agent Vision · Text-to-SQL · RAG · Analytics
+      </div>
     </div>
-    <div class="metric doodle">
-      <div>JSON COMPLIANCE</div>
-      <div class="metric-value">100%</div>
+    <div class="header-actions">
+      <span class="status-badge">
+        <span class="pulse"></span> The Weave is Stable
+      </span>
+      <button class="theme-toggle" on:click={toggleTheme} aria-label="Toggle theme">
+        <span>{darkTheme ? '☀️' : '🌙'}</span>
+      </button>
     </div>
-    <div class="metric doodle">
-      <div>RECEIPTS</div>
-      <div class="metric-value">626</div>
-    </div>
-    <div class="metric doodle">
-      <div>AVG TIME</div>
-      <div class="metric-value">4.16s</div>
-    </div>
-  </div>
+  </header>
 
-  <div class="layout">
-    <div class="left-col">
-      <div class="panel doodle">
-        <div class="panel-title">💬 Ask The Agent</div>
-        <div class="chatbox">
-          {#each messages as msg}
-            {#if msg.role === 'user'}
-              <div class="user">{msg.content}</div>
-            {:else}
-              <div class="ai">
-                {@html msg.content}
-              </div>
-              {#if msg.sql}
-                <div class="sql">{msg.sql}</div>
+  <!-- BENTO GRID -->
+  <div class="bento-grid">
+    
+    <!-- MAIN CHAT (Spans 2 columns, 2 rows) -->
+    <div class="panel elf-card bento-chat">
+      <div class="elf-glow-spot"></div>
+      <div class="panel-title">
+        💬 Speak to the Oracle
+        <span class="badge">Live</span>
+      </div>
+
+      <div class="chatbox" bind:this={chatboxElement}>
+        {#each messages as msg}
+          <div class="chat-message {msg.role}">
+            <span class="msg-label">{msg.role === 'user' ? '◈ You' : '◈ Oracle · Analytics'}</span>
+            <div class="msg-content">
+              {@html msg.content}
+              {#if msg.sql && msg.sql !== "-- No SQL Generated"}
+                <span class="sql-block">{msg.sql}</span>
               {/if}
-            {/if}
-          {/each}
-          
-          {#if isSending}
-             <div class="ai" style="opacity: 0.6">Thinking...</div>
-          {/if}
-        </div>
-        
-        <form on:submit|preventDefault={sendMessage} class="chat-input-container">
-          <input type="text" bind:value={prompt} placeholder="Ask about your receipts..." disabled={isSending} />
-          <button type="submit" disabled={isSending}>Send</button>
-        </form>
+            </div>
+          </div>
+        {/each}
+        {#if isSending}
+          <div class="chat-message ai" style="opacity: 0.6;">
+            <span class="msg-label">◈ Oracle · Analytics</span>
+            <div class="msg-content">Consulting the weave...</div>
+          </div>
+        {/if}
       </div>
 
-      <br>
+      <form class="chat-input-row" on:submit|preventDefault={sendMessage}>
+        <input type="text" bind:value={prompt} placeholder="Ask of the weave…" disabled={isSending} />
+        <button type="submit" disabled={isSending}>✦ Ask</button>
+      </form>
+    </div>
 
-      <div class="panel doodle">
-        <div class="panel-title">⚡ Agent Execution Trace</div>
-        {#each traceItems as trace}
-           <div class="trace-item">{trace}</div>
-        {/each}
+    <!-- METRICS (Top Right - 1 column) -->
+    <div class="panel elf-card bento-metrics">
+      <div class="elf-glow-spot left"></div>
+      <div class="metrics-grid">
+        <div class="metric-mini">
+          <div class="metric-label">F1 Score</div>
+          <div class="metric-value f1">91.64%</div>
+        </div>
+        <div class="metric-mini">
+          <div class="metric-label">JSON Compliance</div>
+          <div class="metric-value mist">100%</div>
+        </div>
+        <div class="metric-mini">
+          <div class="metric-label">Scrolls Processed</div>
+          <div class="metric-value teal">626</div>
+        </div>
+        <div class="metric-mini">
+          <div class="metric-label">Avg Vision Time</div>
+          <div class="metric-value lav">4.16s</div>
+        </div>
       </div>
     </div>
 
-    <div class="right-col">
-      <div class="panel doodle">
-        <div class="panel-title">🤖 Live Agent Status</div>
+    <!-- AGENT STATUS (Middle Right - 1 column) -->
+    <div class="panel elf-card bento-agents">
+      <div class="panel-title" style="font-size: 22px;">
+        🤖 The Weave
+        <span class="badge mist">4 active</span>
+      </div>
+      <div class="agent-list">
         {#each agentStatus as agent}
           <div class="agent">
-            <span>{agent.name}</span>
-            <span><span class="dot" style="background: {agent.active ? '#33cc66' : '#ccc'}"></span> {agent.active ? 'Active' : 'Idle'}</span>
+            <span class="agent-name">{agent.name}</span>
+            <span class="agent-status">
+              <span class="dot {agent.active ? 'active' : 'idle'}"></span> 
+              {agent.active ? 'Active' : 'Resting'}
+            </span>
           </div>
         {/each}
       </div>
+    </div>
 
-      <br>
-
-      <div class="panel doodle">
-        <div class="panel-title">🎨 Agent Orchestration</div>
-        <div class="graph">
-          <div class="node manager">Agent Manager</div>
-          <br>⬇<br>
-          <div class="node analytics">Analytics Agent</div>
-          <br>⬇<br>
-          <div class="node">SQL Generator</div>
-          <br>⬇<br>
-          <div class="node supabase">Supabase</div>
-          <br>⬇<br>
-          <div class="node">Insight Engine</div>
-        </div>
+    <!-- EXECUTION TRACE (Bottom - spans 3 columns horizontally) -->
+    <div class="panel elf-card bento-trace">
+      <div class="panel-title" style="margin-bottom: 8px;">
+        ⚡ Thread of Execution
+        <span class="badge silver">Trace</span>
+      </div>
+      <div class="trace-row">
+        {#each traceItems as trace, i}
+          <div class="trace-item-horiz">
+            <span class="trace-text">{trace}</span>
+            {#if i < traceItems.length - 1}
+              <span class="trace-arrow">→</span>
+            {/if}
+          </div>
+        {/each}
       </div>
     </div>
+
+    <!-- GRAPH (Bottom - spans 3 columns) -->
+    <div class="panel elf-card bento-graph">
+      <div class="graph-row">
+        <div class="node manager">🧠 Manager</div>
+        <span class="arrow">→</span>
+        <div class="node analytics">📊 Analytics</div>
+        <span class="arrow">→</span>
+        <div class="node gold-outline">⚙️ SQL Weaver</div>
+        <span class="arrow">→</span>
+        <div class="node supabase">🗄️ Archive</div>
+        <span class="arrow">→</span>
+        <div class="node purple">📈 Insights</div>
+      </div>
+      <div class="flow-stats">
+        <span>✦ 4.2ms avg hop</span>
+        <span>✦ 99.8% reliability</span>
+        <span>✦ Fully Autonomous</span>
+      </div>
+    </div>
+
   </div>
 
-  <div class="footer doodle">
-    ✨ Doodle Theme • Red + Yellow + Blue + White • Vercel Ready
-  </div>
+  <footer class="footer elf-card">
+    <span>
+      <span class="foot-emoji">✦</span>
+      Elfaria Albis Selfort · The Weave endures
+      <span class="foot-emoji">✦</span>
+    </span>
+    <span>
+      <span class="foot-divider">·</span>
+      v2 · Bento Oracle Edition
+      <span class="foot-divider">·</span>
+    </span>
+  </footer>
+
 </main>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Nunito:wght@400;700;900&display=swap');
-
-:global(:root) {
-  --red: #ff5b5b;
-  --yellow: #ffd93d;
-  --blue: #4d96ff;
-  --white: #ffffff;
-  --bg: #faf7f2;
-  --ink: #1f1f1f;
-}
-
-:global(*) {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-:global(body) {
-  background: var(--bg);
-  font-family: 'Nunito', sans-serif;
-  color: var(--ink);
-  padding: 24px;
-  background-image:
-    radial-gradient(circle at 10% 20%, rgba(255,217,61,.25) 0 120px, transparent 121px),
-    radial-gradient(circle at 90% 10%, rgba(77,150,255,.18) 0 140px, transparent 141px),
-    radial-gradient(circle at 85% 80%, rgba(255,91,91,.18) 0 140px, transparent 141px);
-  background-attachment: fixed;
-}
-
-.doodle {
-  border: 4px solid var(--ink);
-  border-radius: 28px;
-  box-shadow: 8px 8px 0 var(--ink);
-}
-
-.header {
-  background: white;
-  padding: 28px;
-  margin-bottom: 22px;
-}
-
-.title {
-  font-family: 'Patrick Hand', cursive;
-  font-size: 54px;
-  line-height: 1;
-}
-
-.subtitle {
-  margin-top: 10px;
-  font-size: 18px;
-}
-
-.metrics {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 18px;
-  margin-bottom: 22px;
-}
-
-.metric {
-  padding: 22px;
-  background: white;
-}
-
-.metric:nth-child(1) { background: var(--yellow); }
-.metric:nth-child(2) { background: var(--blue); color: white; }
-.metric:nth-child(3) { background: var(--red); color: white; }
-.metric:nth-child(4) { background: white; }
-
-.metric-value {
-  font-size: 38px;
-  font-weight: 900;
-}
-
-.layout {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 22px;
-}
-
-.panel {
-  background: white;
-  padding: 24px;
-}
-
-.panel-title {
-  font-family: 'Patrick Hand', cursive;
-  font-size: 34px;
-  margin-bottom: 16px;
-}
-
-.chatbox {
-  background: #fffef9;
-  padding: 18px;
-  border: 3px dashed var(--ink);
-  border-radius: 20px;
-  max-height: 500px;
-  overflow-y: auto;
-  margin-bottom: 16px;
-}
-
-.user {
-  background: var(--blue);
-  color: white;
-  padding: 14px;
-  border-radius: 18px 18px 4px 18px;
-  margin-bottom: 16px;
-  align-self: flex-end;
-  text-align: right;
-}
-
-.ai {
-  background: var(--yellow);
-  padding: 16px;
-  border-radius: 18px 18px 18px 4px;
-  margin-bottom: 10px;
-}
-
-.sql {
-  margin-top: 5px;
-  margin-bottom: 16px;
-  background: #f5f5f5;
-  padding: 16px;
-  border-radius: 16px;
-  border: 3px solid var(--ink);
-  font-family: monospace;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-}
-
-.chat-input-container {
-  display: flex;
-  gap: 10px;
-}
-
-.chat-input-container input {
-  flex-grow: 1;
-  padding: 12px 18px;
-  border: 3px solid var(--ink);
-  border-radius: 20px;
-  font-size: 16px;
-  font-family: 'Nunito', sans-serif;
-  box-shadow: 4px 4px 0 var(--blue);
-  outline: none;
-}
-
-.chat-input-container button {
-  padding: 12px 24px;
-  border: 3px solid var(--ink);
-  border-radius: 20px;
-  background: var(--red);
-  color: white;
-  font-weight: bold;
-  font-size: 16px;
-  cursor: pointer;
-  box-shadow: 4px 4px 0 var(--ink);
-  transition: all 0.2s;
-}
-
-.chat-input-container button:active {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0 var(--ink);
-}
-
-.trace-item {
-  padding: 12px;
-  margin: 10px 0;
-  background: #fff;
-  border-left: 8px solid var(--blue);
-  border-radius: 10px;
-}
-
-.agent {
-  display: flex;
-  justify-content: space-between;
-  margin: 10px 0;
-  padding: 12px;
-  background: #fffef8;
-  border: 3px solid var(--ink);
-  border-radius: 14px;
-}
-
-.dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  display: inline-block;
-  transition: background-color 0.3s;
-}
-
-.graph {
-  text-align: center;
-  line-height: 2.4;
-}
-
-.node {
-  display: inline-block;
-  padding: 10px 18px;
-  background: white;
-  border: 3px solid var(--ink);
-  border-radius: 999px;
-  font-weight: 800;
-}
-
-.manager { background: var(--red); color: white; }
-.analytics { background: var(--yellow); }
-.supabase { background: var(--blue); color: white; }
-
-.footer {
-  margin-top: 22px;
-  padding: 20px;
-  background: white;
-  text-align: center;
-  font-weight: 700;
-}
-
-@media(max-width: 1000px) {
-  .metrics, .layout {
-    grid-template-columns: 1fr;
+  :global(:root) {
+    --elf-ivory: #f7f2eb;
+    --elf-cream: #ede6dc;
+    --elf-parchment: #e6ddd2;
+    --elf-gold: #c9a84c;
+    --elf-gold-light: #e8d5a0;
+    --elf-gold-glow: rgba(201, 168, 76, 0.25);
+    --elf-silver: #b8bcc0;
+    --elf-silver-light: #d5d8dc;
+    --elf-mist: #b5c8d4;
+    --elf-mist-dark: #8aabb8;
+    --elf-lavender: #c8b8c8;
+    --elf-lavender-light: #ddd0dd;
+    --elf-teal: #8ab5b0;
+    --elf-ink: #2a241e;
+    --elf-ink-light: #5a4f47;
+    --elf-white: #fcf9f5;
+    --elf-bg: #f7f2eb;
+    --elf-panel: #fcf9f5;
+    --elf-shadow: 0 12px 40px rgba(42, 36, 30, 0.10), 0 4px 16px rgba(42, 36, 30, 0.04);
+    --elf-border: #ddd0c4;
+    --elf-radius: 24px;
+    --elf-transition: 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    --elf-font: 'Quicksand', sans-serif;
+    --elf-font-display: 'Playfair Display', serif;
+    --elf-font-accent: 'El Messiri', serif;
   }
-}
+
+  :global([data-theme="dark"]) {
+    --elf-bg: #1a1618;
+    --elf-panel: #262124;
+    --elf-cream: #2d282a;
+    --elf-white: #322c2e;
+    --elf-ink: #ede6dc;
+    --elf-ink-light: #b8a89c;
+    --elf-border: #443c3e;
+    --elf-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.2);
+    --elf-gold-glow: rgba(201, 168, 76, 0.12);
+  }
+
+  :global(*) {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :global(body) {
+    background: var(--elf-bg);
+    font-family: var(--elf-font);
+    color: var(--elf-ink);
+    min-height: 100vh;
+    transition: background var(--elf-transition), color var(--elf-transition);
+  }
+
+  /* Magic Background */
+  .app {
+    position: relative;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 28px;
+    z-index: 1;
+  }
+
+  .elf-bg-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    background-image:
+      radial-gradient(ellipse at 15% 10%, rgba(201, 168, 76, 0.06) 0 300px, transparent 301px),
+      radial-gradient(ellipse at 85% 90%, rgba(181, 200, 212, 0.08) 0 350px, transparent 351px),
+      radial-gradient(ellipse at 50% 50%, rgba(200, 184, 200, 0.04) 0 500px, transparent 501px),
+      radial-gradient(circle at 20% 30%, rgba(201, 168, 76, 0.04) 0 2px, transparent 3px),
+      radial-gradient(circle at 80% 70%, rgba(181, 200, 212, 0.04) 0 2px, transparent 3px),
+      radial-gradient(circle at 50% 85%, rgba(200, 184, 200, 0.04) 0 2px, transparent 3px);
+    background-size: auto, auto, auto, 60px 60px, 60px 60px, 60px 60px;
+  }
+
+  /* Glassmorphism Cards */
+  .elf-card {
+    background: var(--elf-panel);
+    border-radius: var(--elf-radius);
+    box-shadow: var(--elf-shadow);
+    border: 1px solid var(--elf-border);
+    backdrop-filter: blur(8px);
+    position: relative;
+    overflow: hidden;
+    transition: all var(--elf-transition);
+  }
+
+  .elf-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--elf-radius);
+    padding: 1px;
+    background: linear-gradient(135deg, var(--elf-gold-light), transparent 50%, var(--elf-silver-light));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  .elf-glow-spot {
+    position: absolute;
+    top: -40px;
+    right: -20px;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, rgba(201, 168, 76, 0.06) 0%, transparent 70%);
+    pointer-events: none;
+    border-radius: 50%;
+  }
+
+  .elf-glow-spot.left {
+    right: auto;
+    left: -20px;
+    background: radial-gradient(circle, rgba(181, 200, 212, 0.06) 0%, transparent 70%);
+  }
+
+  /* Header */
+  .bento-header {
+    padding: 24px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+
+  .header-left .title {
+    font-family: var(--elf-font-display);
+    font-size: 38px;
+    font-weight: 700;
+    color: var(--elf-ink);
+    line-height: 1.1;
+  }
+
+  .header-left .title .accent {
+    color: var(--elf-gold);
+    font-style: italic;
+  }
+
+  .header-left .title .ornament {
+    color: var(--elf-gold);
+    font-size: 28px;
+  }
+
+  .header-left .subtitle {
+    font-family: var(--elf-font-accent);
+    font-size: 16px;
+    color: var(--elf-ink-light);
+    margin-top: 4px;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+  }
+
+  .theme-toggle {
+    background: var(--elf-white);
+    border: 1px solid var(--elf-border);
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(42, 36, 30, 0.04);
+  }
+
+  .status-badge {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: var(--elf-teal);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .pulse {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #fff;
+    animation: pulse-dot 1.8s infinite;
+  }
+
+  /* BENTO GRID LAYOUT */
+  .bento-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-auto-rows: minmax(min-content, max-content);
+    gap: 24px;
+  }
+
+  .panel {
+    padding: 24px;
+  }
+
+  .panel-title {
+    font-family: var(--elf-font-display);
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--elf-ink);
+  }
+
+  .badge {
+    font-family: var(--elf-font);
+    font-size: 10px;
+    font-weight: 700;
+    background: var(--elf-gold);
+    color: #fff;
+    padding: 2px 12px;
+    border-radius: 999px;
+    text-transform: uppercase;
+  }
+
+  .badge.silver { background: var(--elf-silver); }
+  .badge.mist { background: var(--elf-mist-dark); }
+
+  /* Bento Placements */
+  .bento-chat {
+    grid-column: span 2;
+    grid-row: span 2;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .bento-metrics {
+    grid-column: span 1;
+    grid-row: span 1;
+  }
+
+  .bento-agents {
+    grid-column: span 1;
+    grid-row: span 1;
+  }
+
+  .bento-trace {
+    grid-column: span 3;
+  }
+
+  .bento-graph {
+    grid-column: span 3;
+  }
+
+  /* Chatbox */
+  .chatbox {
+    background: var(--elf-cream);
+    padding: 16px;
+    border-radius: 16px;
+    border: 1px solid var(--elf-border);
+    flex-grow: 1;
+    min-height: 350px;
+    max-height: 450px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .chat-message {
+    padding: 14px 18px;
+    border-radius: 16px;
+    max-width: 85%;
+    border: 1px solid var(--elf-border);
+  }
+
+  .chat-message.user {
+    background: var(--elf-white);
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+    border-color: var(--elf-gold-light);
+  }
+
+  .chat-message.ai {
+    background: var(--elf-white);
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+    border-color: var(--elf-mist);
+  }
+
+  .msg-label {
+    font-size: 11px;
+    font-weight: 700;
+    opacity: 0.6;
+    margin-bottom: 4px;
+    display: block;
+    font-family: var(--elf-font-accent);
+    text-transform: uppercase;
+  }
+
+  .msg-content {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .sql-block {
+    display: block;
+    background: var(--elf-cream);
+    padding: 12px;
+    border-radius: 12px;
+    margin-top: 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    border: 1px solid var(--elf-border);
+    color: var(--elf-ink-light);
+    white-space: pre-wrap;
+  }
+
+  .chat-input-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .chat-input-row input {
+    flex: 1;
+    padding: 14px 20px;
+    border: 1px solid var(--elf-border);
+    border-radius: 999px;
+    font-family: var(--elf-font);
+    background: var(--elf-white);
+    color: var(--elf-ink);
+    outline: none;
+  }
+
+  .chat-input-row button {
+    padding: 14px 28px;
+    border: none;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--elf-gold), #b8943a);
+    color: #fff;
+    font-family: var(--elf-font);
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  /* Metrics Grid inside Bento */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    height: 100%;
+  }
+
+  .metric-mini {
+    background: var(--elf-cream);
+    padding: 16px;
+    border-radius: 16px;
+    border: 1px solid var(--elf-border);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .metric-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--elf-ink-light);
+    margin-bottom: 4px;
+  }
+
+  .metric-value {
+    font-family: var(--elf-font-display);
+    font-size: 26px;
+    font-weight: 700;
+  }
+
+  .metric-value.f1 { color: var(--elf-gold); }
+  .metric-value.mist { color: var(--elf-mist-dark); }
+  .metric-value.teal { color: var(--elf-teal); }
+  .metric-value.lav { color: var(--elf-lavender); }
+
+  /* Agents */
+  .agent-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .agent {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--elf-white);
+    border: 1px solid var(--elf-border);
+    border-radius: 12px;
+  }
+
+  .agent-name {
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .agent-status {
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .dot.active {
+    background: var(--elf-teal);
+    animation: pulse-dot 1.8s infinite;
+  }
+
+  .dot.idle {
+    background: var(--elf-silver);
+  }
+
+  /* Trace Row */
+  .trace-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .trace-item-horiz {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .trace-text {
+    background: var(--elf-white);
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--elf-border);
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(42,36,30,0.02);
+  }
+
+  .trace-arrow {
+    color: var(--elf-gold);
+    opacity: 0.5;
+  }
+
+  /* Graph */
+  .graph-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 12px 0;
+  }
+
+  .node {
+    padding: 10px 20px;
+    background: var(--elf-white);
+    border: 1px solid var(--elf-border);
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 13px;
+  }
+
+  .node.manager { background: linear-gradient(135deg, var(--elf-gold), #b8943a); color: #fff; }
+  .node.analytics { background: var(--elf-mist); color: #fff; }
+  .node.supabase { background: var(--elf-teal); color: #fff; }
+  .node.purple { background: var(--elf-lavender); color: #fff; }
+  .node.gold-outline { color: var(--elf-gold); border-color: var(--elf-gold); }
+
+  .graph-row .arrow {
+    color: var(--elf-ink-light);
+    opacity: 0.3;
+  }
+
+  .flow-stats {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--elf-ink-light);
+    opacity: 0.6;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(120px);
+    background: rgba(252, 249, 245, 0.92);
+    color: var(--elf-ink);
+    padding: 12px 24px;
+    border: 1px solid var(--elf-border);
+    border-radius: 999px;
+    box-shadow: var(--elf-shadow);
+    font-weight: 600;
+    font-size: 14px;
+    opacity: 0;
+    transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    backdrop-filter: blur(12px);
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .toast-icon { color: var(--elf-gold); }
+
+  /* Footer */
+  .footer {
+    margin-top: 24px;
+    padding: 16px 30px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--elf-ink-light);
+    font-family: var(--elf-font-accent);
+  }
+
+  .foot-emoji { color: var(--elf-gold); }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(0.6); }
+  }
+
+  @media (max-width: 1000px) {
+    .bento-grid {
+      grid-template-columns: 1fr;
+    }
+    .bento-chat, .bento-metrics, .bento-agents, .bento-trace, .bento-graph {
+      grid-column: span 1;
+    }
+  }
 </style>
