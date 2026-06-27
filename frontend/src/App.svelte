@@ -1,5 +1,6 @@
 <script>
   import { onMount, tick } from 'svelte';
+  import { marked } from 'marked';
 
   let prompt = "";
   let isSending = false;
@@ -104,6 +105,7 @@
       if (display_content.includes("```sql")) {
          display_content = display_content.replace(/```sql[\s\S]*?```/g, '');
       }
+      display_content = marked.parse(display_content);
       
       let sql = data.sql_query || "-- No SQL Generated";
       
@@ -591,6 +593,31 @@
   .msg-content {
     font-size: 14px;
     line-height: 1.5;
+  }
+  
+  /* Markdown Styles inside Chat */
+  :global(.msg-content p) {
+    margin-bottom: 8px;
+  }
+  :global(.msg-content strong) {
+    color: var(--elf-gold);
+    font-weight: 700;
+  }
+  :global(.msg-content table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  :global(.msg-content th), :global(.msg-content td) {
+    border: 1px solid var(--elf-border);
+    padding: 8px 12px;
+    text-align: left;
+  }
+  :global(.msg-content th) {
+    background: var(--elf-gold-glow);
+    font-family: var(--elf-font-accent);
+    color: var(--elf-ink);
   }
 
   .sql-block {
