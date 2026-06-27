@@ -1,5 +1,6 @@
 import os
 import base64
+import requests
 from parser.document_parser import parse_sroie_box_file
 
 class DocumentParsingAgent:
@@ -36,16 +37,19 @@ class DocumentParsingAgent:
             
             base64_image = self._encode_image(file_path)
             
-            # Using OpenAI compatible API for HuggingFace
-            from openai import OpenAI
-            client = OpenAI(
-                base_url="https://api-inference.huggingface.co/v1/",
-                api_key=self.hf_token
-            )
+            # Using direct requests for better error handling and visibility
+            api_url = f"https://api-inference.huggingface.co/models/{self.model}/v1/chat/completions"
+            headers = {
+                "Authorization": f"Bearer {self.hf_token}",
+                "Content-Type": "application/json"
+            }
             
-            response = client.chat.completions.create(
-                model=self.model,
-                messages=[
+            # Ensure correct mime type
+            mime_ext = "jpeg" if ext in ["jpg", "jpeg"] else ext
+            
+            payload = {
+                "model": self.model,
+                "messages": [
                     {
                         "role": "user",
                         "content": [
@@ -55,13 +59,31 @@ class DocumentParsingAgent:
                             },
                             {
                                 "type": "image_url", 
-                                "image_url": {"url": f"data:image/{ext};base64,{base64_image}"}
+                                "image_url": {"url": f"data:image/{mime_ext};base64,{base64_image}"}
                             }
                         ]
                     }
                 ],
-                max_tokens=1500,
-            )
-            return response.choices[0].message.content
+                "max_tokens": 1500,
+            }
+            
+            try:
+                response = requests.post(api_url, headers=headers, json=payload, timeout=60)
+                if response.status_code != 200:
+                    error_msg = response.text
+                    raise Exception(f"HF API Error {response.status_code}: {error_msg}")
+                
+                response_json = response.json()
+                if "choices" in response_json and len(response_json["choices"]) > 0:
+                    return response_json["choices"][0]["message"]["content"]
+                else:
+                    raise Exception(f"Unexpected API response format: {response_json}")
+            except requests.exceptions.ConnectionError:
+                raise Exception("Connection error to HuggingFace API. The model might be loading or the inference API is down.")
+            except requests.exceptions.Timeout:
+                raise Exception("HuggingFace API timeout. The VLM took too long to process the image.")
+            except Exception as e:
+                raise Exception(str(e))
+            
         else:
             raise NotImplementedError(f"Parsing for extension .{ext} not yet implemented.")
