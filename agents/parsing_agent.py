@@ -1,6 +1,8 @@
 import os
 import base64
 import requests
+import io
+from PIL import Image
 from parser.document_parser import parse_sroie_box_file
 
 class DocumentParsingAgent:
@@ -16,8 +18,19 @@ class DocumentParsingAgent:
         self.model = "meta-llama/Llama-3.2-11B-Vision-Instruct"
         
     def _encode_image(self, image_path):
-        with open(image_path, "rb") as image_file:
-            return base64.b64encode(image_file.read()).decode('utf-8')
+        with Image.open(image_path) as img:
+            # Resize image to prevent massive JSON payloads dropping the HF connection
+            max_size = 1024
+            if img.width > max_size or img.height > max_size:
+                img.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
+            
+            # Ensure it's in a compatible mode
+            if img.mode in ('RGBA', 'P'):
+                img = img.convert('RGB')
+                
+            buffered = io.BytesIO()
+            img.save(buffered, format="JPEG", quality=85)
+            return base64.b64encode(buffered.getvalue()).decode('utf-8')
     
     def parse_file(self, file_path: str) -> str:
         """
@@ -68,6 +81,7 @@ class DocumentParsingAgent:
             }
             
             try:
+                # Add verify=False if there are SSL issues, but standard is True
                 response = requests.post(api_url, headers=headers, json=payload, timeout=60)
                 if response.status_code != 200:
                     error_msg = response.text
@@ -78,8 +92,8 @@ class DocumentParsingAgent:
                     return response_json["choices"][0]["message"]["content"]
                 else:
                     raise Exception(f"Unexpected API response format: {response_json}")
-            except requests.exceptions.ConnectionError:
-                raise Exception("Connection error to HuggingFace API. The model might be loading or the inference API is down.")
+            except requests.exceptions.ConnectionError as e:
+                raise Exception(f"Connection error to HuggingFace API. Payload might be too large or the API is down. Details: {str(e)}")
             except requests.exceptions.Timeout:
                 raise Exception("HuggingFace API timeout. The VLM took too long to process the image.")
             except Exception as e:
