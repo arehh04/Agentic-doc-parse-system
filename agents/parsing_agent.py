@@ -1,6 +1,8 @@
 import os
 from parser.document_parser import parse_sroie_box_file
-from docling.document_converter import DocumentConverter
+from docling.document_converter import DocumentConverter, ImageFormatOption, PdfFormatOption
+from docling.datamodel.base_models import InputFormat
+from docling.datamodel.pipeline_options import EasyOcrOptions, PdfPipelineOptions
 
 class DocumentParsingAgent:
     """
@@ -9,8 +11,17 @@ class DocumentParsingAgent:
     """
     
     def __init__(self):
-        # Initialize Docling converter (this will download models on first run if needed)
-        self.converter = DocumentConverter()
+        # Configure EasyOCR to avoid the torch.PP-OCRv6.det.small error in HuggingFace Spaces
+        ocr_options = EasyOcrOptions(do_ocr=True)
+        pipeline_options = PdfPipelineOptions(ocr_options=ocr_options)
+        
+        # Initialize Docling converter with EasyOCR
+        self.converter = DocumentConverter(
+            format_options={
+                InputFormat.IMAGE: ImageFormatOption(pipeline_options=pipeline_options),
+                InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)
+            }
+        )
     
     def parse_file(self, file_path: str) -> str:
         """
