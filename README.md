@@ -14,10 +14,10 @@ pinned: false
 ### Multi-Agent Architecture for Intelligent Document Processing
 
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Svelte](https://img.shields.io/badge/Svelte-Frontend-FF3E00?style=for-the-badge&logo=svelte&logoColor=white)](https://svelte.dev/)
 [![LangChain](https://img.shields.io/badge/LangChain-Framework-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white)](https://langchain.com)
-[![Pydantic v2](https://img.shields.io/badge/Pydantic-v2-E92063?style=for-the-badge&logo=pydantic&logoColor=white)](https://pydantic.dev)
 [![Supabase](https://img.shields.io/badge/Supabase-Database-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com)
-[![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io)
 [![DeepSeek](https://img.shields.io/badge/DeepSeek-LLM-4D6CFA?style=for-the-badge)](https://deepseek.com)
 
 ---
@@ -54,7 +54,7 @@ flowchart LR
         A["Receipt Image / OCR Text"]
     end
 
-    subgraph Pipeline
+    subgraph Pipeline [Backend / HuggingFace]
         B["Parsing Agent\n(Docling OCR)"]
         C["Extraction Agent\n(DeepSeek LLM)"]
         D["Validation Agent\n(Pydantic v2)"]
@@ -63,10 +63,10 @@ flowchart LR
         G["Storage Agent\n(Supabase)"]
     end
 
-    subgraph Output
+    subgraph Output [Frontend / Vercel]
         H["Structured JSON"]
-        I["Cloud Database"]
-        J["Analytics Dashboard"]
+        I["Supabase DB"]
+        J["Svelte Bento UI"]
     end
 
     A --> B --> C --> D --> E
@@ -182,8 +182,8 @@ The Quality Agent runs 9 configurable checks on every validated receipt:
 - **Cloud persistence** — Supabase upsert with filename-based deduplication and full SQL migration
 - **10-worker concurrency** — `ThreadPoolExecutor` with thread-safe statistics aggregation
 - **Token-level F1 evaluation** — Automated benchmarking against SROIE ground truth with per-field metrics
-- **Interactive Streamlit dashboard** — Real-time KPIs, field accuracy charts, receipt analysis, and data exploration
-- **Natural language database chat** — Text-to-SQL RAG agent for conversational analytics over Supabase
+- **Cloud-Native Deployment** — Fully decoupled architecture with a FastAPI backend hosted on HuggingFace Spaces and a SvelteKit frontend hosted on Vercel.
+- **Bento Grid Svelte UI** — A beautiful, highly responsive "Oracle" interface (Elfaria Albis theme) with live agent tracing, drag-and-drop receipt upload, and natural language Text-to-SQL RAG analytics.
 
 ---
 
@@ -324,29 +324,28 @@ python tests/test_quality_agent.py
 
 Runs 11 test cases covering normal receipts, edge cases, and adversarial inputs against all 9 quality rules.
 
-### Launch the Dashboard
+### Launch the Web Application
 
+The project uses a decoupled frontend/backend architecture.
+
+**1. Start the FastAPI Backend (HuggingFace)**
 ```bash
-streamlit run dashboard.py
+uvicorn main:app --reload
 ```
+*(The backend runs on `http://127.0.0.1:8000`)*
 
-The dashboard provides five tabs:
-
-| Tab | Description |
-|:--|:--|
-| **Overview** | Pipeline KPIs — total receipts, success rate, average value, overall F1 |
-| **Data Analysis** | Top companies by volume, receipts by month, distribution charts |
-| **Accuracy & Errors** | Per-field F1 bar charts from the evaluation report |
-| **Database** | Tabular view of all records stored in Supabase |
-| **Chat with Database** | Natural language queries — ask questions and see generated SQL |
-
-**Example chat queries:**
+**2. Start the Svelte Frontend (Vercel)**
+Open a new terminal:
+```bash
+cd frontend
+npm install
+npm run dev
 ```
-"What is the total spending at 99 Speedmart?"
-"Show me all receipts above RM 50"
-"Which company has the most receipts?"
-"What is the average receipt amount by month?"
-```
+*(The frontend runs on `http://localhost:5173`)*
+
+**Live Production URLs:**
+- **Frontend (UI)**: Hosted on Vercel (see your Vercel deployment link)
+- **Backend (API)**: Hosted on HuggingFace Spaces (`https://arehhham-carrera-ai-backend.hf.space`)
 
 ---
 
@@ -358,8 +357,9 @@ The dashboard provides five tabs:
 | **Framework** | LangChain / LangChain-OpenAI | Prompt templates, chain composition, output parsing |
 | **Validation** | Pydantic v2 | Schema enforcement and type coercion |
 | **OCR** | Docling | Raw image to markdown text conversion |
+| **Backend API** | FastAPI | High-performance REST API endpoints |
 | **Database** | Supabase (PostgreSQL) | Cloud persistence with REST API |
-| **Dashboard** | Streamlit + Plotly | Interactive analytics and visualization |
+| **Frontend UI** | Svelte + Vanilla CSS | Beautiful, responsive Bento Grid "Oracle" interface |
 | **Concurrency** | ThreadPoolExecutor | 10-worker parallel batch processing |
 | **Evaluation** | Custom F1 Engine | Token-level precision, recall, F1, exact match |
 | **Testing** | pytest | Quality agent rule verification |
