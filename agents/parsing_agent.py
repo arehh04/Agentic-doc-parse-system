@@ -50,8 +50,8 @@ class DocumentParsingAgent:
             
             base64_image = self._encode_image(file_path)
             
-            # Using direct requests for better error handling and visibility
-            api_url = f"https://api-inference.huggingface.co/models/{self.model}/v1/chat/completions"
+            # Using the robust router endpoint to avoid api-inference DNS resolution errors
+            api_url = "https://router.huggingface.co/hf-inference/v1/chat/completions"
             headers = {
                 "Authorization": f"Bearer {self.hf_token}",
                 "Content-Type": "application/json"
