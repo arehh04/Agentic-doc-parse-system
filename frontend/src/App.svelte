@@ -104,13 +104,10 @@
       
       let display_content = data.answer;
       // Strip SQL fences from text if present
-      if (display_content.includes("```sql")) {
-         display_content = display_content.replace(/```sql[\s\S]*?```/g, '');
-      }
-      // Strip chart_json fences from text if present
-      if (display_content.includes("```chart_json")) {
-         display_content = display_content.replace(/```chart_json[\s\S]*?```/g, '');
-      }
+      display_content = display_content.replace(/```sql[\s\S]*?```/g, '');
+      // Strip chart_json or generic json fences from text if it contains chart_type
+      display_content = display_content.replace(/```(?:chart_json|json)?\s*{[\s\S]*?"chart_type"[\s\S]*?}\s*```/g, '');
+      
       display_content = marked.parse(display_content);
       
       let sql = data.sql_query || "-- No SQL Generated";

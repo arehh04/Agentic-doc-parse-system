@@ -2,6 +2,7 @@ import os
 import json
 import time
 import hashlib
+import re
 from dotenv import load_dotenv
 from supabase import create_client
 from langchain_core.prompts import PromptTemplate
@@ -178,13 +179,13 @@ Answer:"""
                 except IndexError:
                     pass
                     
-            # Parse chart data if present
+            # Parse chart data robustly using regex
             chart_data = None
-            if "```chart_json" in answer:
+            chart_match = re.search(r'```(?:chart_json|json)?\s*({.*?"chart_type".*?})\s*```', answer, re.DOTALL)
+            if chart_match:
                 try:
-                    chart_block = answer.split("```chart_json")[1].split("```")[0].strip()
-                    chart_data = json.loads(chart_block)
-                except (IndexError, json.JSONDecodeError):
+                    chart_data = json.loads(chart_match.group(1))
+                except json.JSONDecodeError:
                     pass
 
             return {
