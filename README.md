@@ -1,3 +1,12 @@
+---
+title: Carrera AI Backend
+emoji: 🏎️
+colorFrom: red
+colorTo: yellow
+sdk: docker
+pinned: false
+---
+
 <div align="center">
 
 # 🏎️ Carrera AI
