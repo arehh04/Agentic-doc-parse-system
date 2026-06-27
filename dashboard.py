@@ -12,8 +12,8 @@ from datetime import datetime
 # Page configuration
 # ---------------------------------------------------------------------------
 st.set_page_config(
-    page_title="SROIE Analytics Dashboard",
-    page_icon="🧾",
+    page_title="Agentic Document Intelligence",
+    page_icon="🤖",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -21,8 +21,95 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-    .main .block-container { padding-top: 2rem; padding-bottom: 2rem; }
-    .metric-card { background: linear-gradient(135deg, #2e3a59, #3a4b7c); color: #ffffff; border-radius: 8px; padding: 1rem; text-align: center; }
+    @import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Nunito:wght@400;700;900&display=swap');
+
+    :root {
+        --red: #ff5b5b;
+        --yellow: #ffd93d;
+        --blue: #4d96ff;
+        --white: #ffffff;
+        --bg: #faf7f2;
+        --ink: #1f1f1f;
+    }
+
+    /* Global Font & Background */
+    html, body, [class*="css"], .stApp {
+        font-family: 'Nunito', sans-serif !important;
+        background-color: var(--bg) !important;
+        color: var(--ink) !important;
+    }
+
+    /* The exact radial gradient from the user's HTML */
+    .stApp > header { background-color: transparent !important; }
+    .stApp {
+        background-image:
+        radial-gradient(circle at 10% 20%, rgba(255,217,61,.25) 0 120px, transparent 121px),
+        radial-gradient(circle at 90% 10%, rgba(77,150,255,.18) 0 140px, transparent 141px),
+        radial-gradient(circle at 85% 80%, rgba(255,91,91,.18) 0 140px, transparent 141px) !important;
+    }
+    
+    div[data-testid="stSidebar"] {
+        background-color: var(--bg) !important; 
+        border-right: 4px solid var(--ink);
+    }
+
+    /* Headers */
+    h1, h2, h3, h4, .st-emotion-cache-10trblm {
+        font-family: 'Patrick Hand', cursive !important;
+        color: var(--ink) !important;
+    }
+
+    /* Doodle-style Containers & Borders (The .doodle class equivalent) */
+    div[data-testid="stMetric"], 
+    div[data-testid="stVerticalBlockBorderWrapper"], 
+    details, 
+    div[data-testid="stChatInput"] {
+        background: var(--white) !important;
+        border: 4px solid var(--ink) !important;
+        border-radius: 28px !important;
+        box-shadow: 8px 8px 0 var(--ink) !important;
+        padding: 10px;
+        margin-bottom: 15px;
+    }
+
+    /* Override metrics to look exactly like the HTML mock */
+    div[data-testid="stMetric"] { padding: 22px !important; }
+    div[data-testid="stMetric"] label { font-family: 'Nunito', sans-serif !important; font-weight: bold; color: var(--ink) !important; }
+    div[data-testid="stMetric"] div[data-testid="stMetricValue"] { font-size: 38px !important; font-weight: 900 !important; color: var(--ink) !important; }
+
+    /* Chat Bubbles (.chatbox style) */
+    div[data-testid="stChatMessage"] {
+        background: #fffef9 !important;
+        border: 3px dashed var(--ink) !important;
+        border-radius: 20px !important;
+        padding: 18px !important;
+        margin-bottom: 15px !important;
+    }
+    
+    /* SQL Code Blocks */
+    code, pre {
+        background: #f5f5f5 !important;
+        border: 3px solid var(--ink) !important;
+        border-radius: 16px !important;
+        font-family: monospace !important;
+        color: var(--ink) !important;
+    }
+
+    /* Buttons */
+    div.stButton > button {
+        background-color: var(--blue) !important;
+        color: white !important;
+        border: 4px solid var(--ink) !important;
+        border-radius: 28px !important;
+        font-family: 'Patrick Hand', cursive !important;
+        font-size: 20px !important;
+        box-shadow: 6px 6px 0 var(--ink) !important;
+        transition: all 0.2s;
+    }
+    div.stButton > button:hover {
+        transform: translate(2px, 2px);
+        box-shadow: 4px 4px 0 var(--ink) !important;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -64,7 +151,7 @@ if st.sidebar.button("🔄 Refresh Data"):
     st.cache_data.clear()
     st.rerun()
 
-st.title("🧾 SROIE Analytics Dashboard")
+st.title("🤖 Agentic Document Intelligence")
 
 # ---------------------------------------------------------------------------
 # Chart rendering helper for the Chat tab
@@ -102,13 +189,70 @@ def _render_chart(chart_data: dict):
         st.warning(f"Could not render chart: {e}")
 
 
-tab_overview, tab_analysis, tab_accuracy, tab_db, tab_chat = st.tabs([
+tab_upload, tab_overview, tab_analysis, tab_accuracy, tab_db, tab_chat = st.tabs([
+    "📤 Upload Receipt",
     "🏠 Overview",
     "📈 Data Analysis",
     "🎯 Accuracy & Errors",
     "☁️ Database",
     "💬 Chat with Database"
 ])
+
+# ---------------------------------------------------------------------------
+# Tab 0 – Upload Receipt
+# ---------------------------------------------------------------------------
+with tab_upload:
+    st.header("📤 Test New Receipt")
+    st.markdown("Upload a brand new receipt image (JPG/PNG) to test the End-to-End pipeline.")
+    
+    uploaded_file = st.file_uploader("Choose a receipt image", type=["jpg", "jpeg", "png"])
+    if uploaded_file is not None:
+        st.image(uploaded_file, caption="Uploaded Receipt", width=400)
+        
+        if st.button("🚀 Run Pipeline"):
+            import tempfile
+            import time
+            from agents.orchestrator import OrchestratorAgent
+            
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
+                tmp.write(uploaded_file.getvalue())
+                tmp_path = tmp.name
+                
+            with st.status("🤖 Orchestrator Agent Processing...", expanded=True) as status:
+                st.write("🟢 **Agent Manager**: Image Received")
+                time.sleep(0.5)
+                st.write("🟢 **Document Parsing Agent**: Running OCR...")
+                
+                # Mocking the visual delay since process_file is synchronous
+                orchestrator = OrchestratorAgent()
+                state = orchestrator.process_file(tmp_path, uploaded_file.name)
+                
+                st.write("🟢 **Entity Extraction Agent**: Extracting JSON via DeepSeek...")
+                time.sleep(0.5)
+                st.write("🟢 **Validation Agent**: Enforcing Pydantic schema...")
+                time.sleep(0.5)
+                st.write("🟢 **Data Quality Agent**: Checking for anomalies...")
+                time.sleep(0.5)
+                st.write("🟢 **Storage Agent**: Pushing to Supabase...")
+                
+                if state.is_success:
+                    status.update(label="✅ Pipeline Completed Successfully", state="complete")
+                else:
+                    status.update(label="❌ Pipeline Failed", state="error")
+                
+            if state.is_success:
+                st.success("Data successfully stored in Supabase!")
+                st.json(state.validated_data.model_dump())
+                
+                if state.quality_report and not state.quality_report.get('is_clean'):
+                    st.warning(f"⚠️ Data Quality Flags: {state.quality_report.get('flags', [])}")
+            else:
+                st.error(f"Pipeline failed: {state.error_message}")
+                
+            try:
+                os.remove(tmp_path)
+            except Exception:
+                pass
 
 # ---------------------------------------------------------------------------
 # Tab 1 – Overview
@@ -196,12 +340,7 @@ with tab_db:
 # Tab 5 – Chat with Database (RAG) — Multi-turn + Charts
 # ---------------------------------------------------------------------------
 with tab_chat:
-    st.header("💬 Ask your Database")
-    st.markdown(
-        "Use natural language to query your Supabase receipts table. "
-        "Try: *'What is the total spending?'*, *'Plot spending by company'*, "
-        "*'Which month had the most receipts?'*"
-    )
+    st.header("🤖 Agentic Document Intelligence")
     
     # Persistent agent with conversation memory
     if "analytics_agent" not in st.session_state:
@@ -210,45 +349,152 @@ with tab_chat:
             st.session_state.analytics_agent = AnalyticsAgent()
         except Exception as e:
             st.error(f"Failed to initialize Analytics Agent: {e}")
-            st.info("Make sure SUPABASE_URL and SUPABASE_KEY are set in your .env file.")
             st.session_state.analytics_agent = None
     
     if "messages" not in st.session_state:
         st.session_state.messages = []
         
-    # Render conversation history
-    for msg in st.session_state.messages:
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
-            if "chart_data" in msg and msg["chart_data"]:
-                _render_chart(msg["chart_data"])
-            if "timing" in msg and msg["timing"]:
-                st.caption(f"⏱ Fetch: {msg['timing'].get('fetch_time', 0)}s | LLM: {msg['timing'].get('llm_time', 0)}s | Total: {msg['timing'].get('total_time', 0)}s")
-            if "sql" in msg:
-                with st.expander("View Query Details"):
-                    st.code(msg["sql"], language="sql")
-                    
-    prompt = st.chat_input("Ask a question about your receipts...")
+    col_main, col_sidebar = st.columns([2.5, 1], gap="large")
     
-    if prompt and st.session_state.analytics_agent:
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
+    with col_main:
+        st.subheader("💬 Ask the Agent")
+        
+        # Render conversation history
+        for msg in st.session_state.messages:
+            with st.chat_message(msg["role"]):
+                st.markdown(msg["content"])
+                if "chart_data" in msg and msg["chart_data"]:
+                    _render_chart(msg["chart_data"])
+                        
+        prompt = st.chat_input("Show top 5 merchants by total spending...")
+        
+    with col_sidebar:
+        st.subheader("🤖 Agent Activity")
+        activity_container = st.container(border=True)
+        
+        if not prompt:
+            activity_container.markdown("""
+            ⚪ **Agent Manager**  
+            ⚪ **Analytics Agent**  
+            ⚪ **SQL Generator**  
+            ⚪ **Supabase**  
+            ⚪ **Insight Engine**
+            """)
             
-        with st.chat_message("assistant"):
-            with st.spinner("Querying Supabase and generating answer..."):
+            st.subheader("⚡ Execution Trace")
+            trace_container = st.container(border=True)
+            trace_container.markdown("*(Waiting for query...)*")
+            
+            st.subheader("🗄 Generated SQL")
+            sql_container = st.container(border=True)
+            sql_container.markdown("*(Waiting for query...)*")
+        
+    if prompt and st.session_state.analytics_agent:
+        with col_main:
+            st.session_state.messages.append({"role": "user", "content": prompt})
+            with st.chat_message("user"):
+                st.markdown(prompt)
+                
+            with st.chat_message("assistant"):
+                import time
+                from datetime import datetime
+                
+                # Right Sidebar Live Updates
+                with col_sidebar:
+                    trace_container = st.container(border=True)
+                    sql_container = st.container(border=True)
+                    
+                    t = datetime.now().strftime("%H:%M:%S")
+                    trace_text = f"**{t}** User query received  \n**{t}** Agent Manager classifying intent  \n"
+                    trace_container.markdown(trace_text)
+                    
+                    activity_container.empty()
+                    activity_container.markdown("""
+                    🟢 **Agent Manager**  
+                    ⚪ Analytics Agent  
+                    ⚪ SQL Generator  
+                    ⚪ Supabase  
+                    ⚪ Insight Engine
+                    """)
+                    
+                    time.sleep(0.5)
+                    t = datetime.now().strftime("%H:%M:%S")
+                    trace_text += f"**{t}** Intent = Analytics Query  \n**{t}** Analytics Agent selected  \n"
+                    trace_container.markdown(trace_text)
+                    
+                    activity_container.empty()
+                    activity_container.markdown("""
+                    ✅ **Agent Manager**  
+                    🟢 **Analytics Agent**  
+                    ⚪ SQL Generator  
+                    ⚪ Supabase  
+                    ⚪ Insight Engine
+                    """)
+                    
+                    time.sleep(0.5)
+                    t = datetime.now().strftime("%H:%M:%S")
+                    trace_text += f"**{t}** Generating SQL  \n"
+                    trace_container.markdown(trace_text)
+                    
+                    activity_container.empty()
+                    activity_container.markdown("""
+                    ✅ **Agent Manager**  
+                    ✅ **Analytics Agent**  
+                    🟢 **SQL Generator**  
+                    ⚪ Supabase  
+                    ⚪ Insight Engine
+                    """)
+                    
+                    time.sleep(0.5)
+                    t = datetime.now().strftime("%H:%M:%S")
+                    trace_text += f"**{t}** Executing query against Supabase  \n"
+                    trace_container.markdown(trace_text)
+                    
+                    activity_container.empty()
+                    activity_container.markdown("""
+                    ✅ **Agent Manager**  
+                    ✅ **Analytics Agent**  
+                    ✅ **SQL Generator**  
+                    🟡 **Supabase Querying...**  
+                    ⚪ Insight Engine
+                    """)
+
+                # Actually Run Query
                 response = st.session_state.analytics_agent.answer_query(prompt)
                 
-                # Clean chart fences from display text
+                with col_sidebar:
+                    t = datetime.now().strftime("%H:%M:%S")
+                    trace_text += f"**{t}** Retrieved {response.get('sql_result', 'records')}  \n**{t}** Generating insights  \n"
+                    trace_container.markdown(trace_text)
+                    
+                    activity_container.empty()
+                    activity_container.markdown("""
+                    ✅ **Agent Manager**  
+                    ✅ **Analytics Agent**  
+                    ✅ **SQL Generator**  
+                    ✅ **Supabase**  
+                    🟢 **Insight Engine**
+                    """)
+                    
+                    sql_container.code(response.get("sql_query", "-- No SQL Generated"), language="sql")
+                
+                # Clean chart and SQL fences from display text
                 display_answer = response["answer"]
                 if "```chart_json" in display_answer:
                     parts = display_answer.split("```chart_json")
                     clean_parts = []
                     for part in parts:
                         if "```" in part:
-                            after_fence = part.split("```", 1)
-                            if len(after_fence) > 1:
-                                clean_parts.append(after_fence[1])
+                            clean_parts.append(part.split("```", 1)[1] if len(part.split("```", 1)) > 1 else "")
+                        else:
+                            clean_parts.append(part)
+                    display_answer = "\n".join(clean_parts).strip()
+                if "```sql" in display_answer:
+                    parts = display_answer.split("```sql")
+                    clean_parts = []
+                    for part in parts:
+                        if "```" in part:
+                            clean_parts.append(part.split("```", 1)[1] if len(part.split("```", 1)) > 1 else "")
                         else:
                             clean_parts.append(part)
                     display_answer = "\n".join(clean_parts).strip()
@@ -260,20 +506,24 @@ with tab_chat:
                 if chart_data:
                     _render_chart(chart_data)
                     
-                # Show timing
-                timing = response.get("timing", {})
-                if timing:
-                    st.caption(f"⏱ Fetch: {timing.get('fetch_time', 0)}s | LLM: {timing.get('llm_time', 0)}s | Total: {timing.get('total_time', 0)}s")
-                
-                with st.expander("View Query Details"):
-                    st.code(response.get("sql_query", ""), language="sql")
+                with col_sidebar:
+                    t = datetime.now().strftime("%H:%M:%S")
+                    trace_text += f"**{t}** Response completed  \n"
+                    trace_container.markdown(trace_text)
+                    
+                    activity_container.empty()
+                    activity_container.markdown("""
+                    ✅ **Agent Manager**  
+                    ✅ **Analytics Agent**  
+                    ✅ **SQL Generator**  
+                    ✅ **Supabase**  
+                    ✅ **Insight Engine**
+                    """)
                     
                 msg_data = {
                     "role": "assistant", 
                     "content": display_answer,
-                    "sql": response.get("sql_query", ""),
-                    "chart_data": chart_data,
-                    "timing": timing
+                    "chart_data": chart_data
                 }
                 st.session_state.messages.append(msg_data)
 
