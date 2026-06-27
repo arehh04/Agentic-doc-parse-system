@@ -1,0 +1,13 @@
+{
+    "total_files": 10,
+    "json_success_count": 10,
+    "validation_success_count": 10,
+    "db_insert_success_count": 10,
+    "failed_receipt_count": 0,
+    "total_processing_time": 2088.64377617836,
+    "quality_warnings_count": 0,
+    "average_processing_time": 208.864377617836,
+    "validation_success_rate": 1.0,
+    "json_success_rate": 1.0,
+    "db_insert_success_rate": 1.0
+}

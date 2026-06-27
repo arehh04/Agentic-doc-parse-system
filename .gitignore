@@ -1,0 +1,10 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+data/output/
+SROIE2019/
+*.json
+!data/evaluation_report.json
+!data/run_stats.json
+.agents/
