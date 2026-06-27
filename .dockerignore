@@ -1,0 +1,9 @@
+.git
+.env
+__pycache__/
+*.pyc
+data/output/
+data/run_stats.json
+data/evaluation_report.json
+.pytest_cache/
+tests/
