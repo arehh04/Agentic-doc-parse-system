@@ -62,8 +62,8 @@ Conversation history:
 User Question: {question}
 
 IMPORTANT INSTRUCTIONS:
-65. Provide a clear, accurate, and friendly answer based on the data above.
-2. If the question requires calculation (sum, average, count, etc.), compute it from the data.
+1. Provide a clear, accurate, and friendly answer based on the data above. DO NOT self-correct, apologize, or output multiple tables for the same question. Compute the final answer and output it once.
+2. If the question requires calculation (sum, average, count, etc.), compute it carefully from the data. Be sure to group similar company names together (e.g. 'MR. D.I.Y. (M) SDN BHD' and 'MR. D.I.Y. SDN BHD' are the same merchant).
 3. You MUST provide the equivalent PostgreSQL query that would have retrieved this exact insight. Wrap it in a ```sql ... ``` block at the end of your answer. This is for transparency purposes.
 4. If the user asks to "plot", "chart", "graph", or "visualize" something, you MUST respond with a JSON block wrapped in ```chart_json``` fences. The JSON must have:
    - "chart_type": one of "bar", "line", "pie", "scatter"
