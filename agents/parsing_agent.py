@@ -15,7 +15,7 @@ class DocumentParsingAgent:
     
     def __init__(self):
         self.hf_token = os.environ.get("HF_TOKEN")
-        self.model = "meta-llama/Llama-3.2-11B-Vision-Instruct"
+        self.model = "Qwen/Qwen2.5-VL-7B-Instruct"
         
     def _encode_image(self, image_path):
         with Image.open(image_path) as img:
