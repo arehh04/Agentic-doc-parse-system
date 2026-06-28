@@ -13,3 +13,4 @@ fastapi
 uvicorn
 python-multipart
 plotly>=5.18.0
+easyocr>=1.7.1
